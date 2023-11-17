@@ -8,21 +8,13 @@
 - Eric Tai, EECS Graduate, [erictai@berkeley.edu](mailto:erictai@berkeley.edu)
 - Michelle Wang, EECS Undergraduate,  [michellew@berkeley.edu](mailto:michellew@berkeley.edu)
 
-<br>
 
 Our project extends from the paper: <br>
 **What Can Transformers Learn In-Context? A Case Study of Simple Function Classes** <br>
 *Shivam Garg\*, Dimitris Tsipras\*, Percy Liang, Gregory Valiant* <br>
 Paper: http://arxiv.org/abs/2208.01066 <br>
 
-```bibtex
-    @InProceedings{garg2022what,
-        title={What Can Transformers Learn In-Context? A Case Study of Simple Function Classes},
-        author={Shivam Garg and Dimitris Tsipras and Percy Liang and Gregory Valiant},
-        year={2022},
-        booktitle={arXiv preprint}
-    }
-```
+Our project explores the in-context learning performance of text pre-trained GPT-2. We then fine-tune using techniques such as Soft Prompting, focusing primarily on the simple linear regression task to compare the results. We also extends to m-degree polynomial functions, as well as sparse linear regression and decision trees. 
 
 ## Getting started
 1. Clone the repository
