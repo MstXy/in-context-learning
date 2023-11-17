@@ -1,10 +1,19 @@
-This repository contains the code and models for our paper:
+# Fine-Tuning Transformers to In-Context Learn Simple Function Classes.
 
+### CS 182/282A Deep Learning Final Project
+
+#### Project Team:
+- William Zhang, EECS Graduate, [chengyu_zhang@berkeley.edu](mailto:chengyu_zhang@berkeley.edu)
+- Yuanbo Chen, EECS Graduate, [yuanbo_chen@berkeley.edu](mailto:yuanbo_chen@berkeley.edu)
+- Eric Tai, EECS Graduate, [erictai@berkeley.edu](mailto:erictai@berkeley.edu)
+- Michelle Wang, EECS Undergraduate,  [michellew@berkeley.edu](mailto:michellew@berkeley.edu)
+
+<br>
+
+Our project extends from the paper: <br>
 **What Can Transformers Learn In-Context? A Case Study of Simple Function Classes** <br>
 *Shivam Garg\*, Dimitris Tsipras\*, Percy Liang, Gregory Valiant* <br>
-Paper: http://arxiv.org/abs/2208.01066 <br><br>
-
-![](setting.jpg)
+Paper: http://arxiv.org/abs/2208.01066 <br>
 
 ```bibtex
     @InProceedings{garg2022what,
@@ -16,29 +25,37 @@ Paper: http://arxiv.org/abs/2208.01066 <br><br>
 ```
 
 ## Getting started
-You can start by cloning our repository and following the steps below.
+1. Clone the repository
+    ```
+    git clone https://github.com/MstXy/in-context-learning.git
+    ```
 
-1. Install the dependencies for our code using Conda. You may need to adjust the environment YAML file depending on your setup.
+2. Install the dependencies using Conda.
 
     ```
     conda env create -f environment.yml
-    conda activate in-context-learning
+    conda activate icl
     ```
 
-2. Download [model checkpoints](https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip) and extract them in the current directory.
+3. Download [model checkpoints](https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip) and extract them in the current directory.
 
     ```
     wget https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip
     unzip models.zip
     ```
 
-3. [Optional] If you plan to train, populate `conf/wandb.yaml` with you wandb info.
+4. To evaluate:
+    ```
+    python eval.py models
+    ```
+    Or use `eval.ipynb`.
 
-That's it! You can now explore our pre-trained models or train your own. The key entry points
-are as follows (starting from `src`):
-- The `eval.ipynb` notebook contains code to load our own pre-trained models, plot the pre-computed metrics, and evaluate them on new data.
-- `train.py` takes as argument a configuration yaml from `conf` and trains the corresponding model. You can try `python train.py --config conf/toy.yaml` for a quick training run.
+5. To train, in `conf/wandb.yaml`, provide wandb user name for `entity`. Then for different task, run:
 
-# Maintainers
-* [Shivam Garg](https://cs.stanford.edu/~shivamg/)
-* [Dimitris Tsipras](https://dtsipras.com/)
+    ```
+    ## Task: linear regression
+    python train.py --config conf/linear_regression.yaml
+
+    ## Task: sparse linear regression
+    python train.py --config conf/sparse_linear_regression.yaml
+    ```
