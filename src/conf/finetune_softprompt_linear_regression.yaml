@@ -6,17 +6,18 @@ model:
     pretrained: True
     freeze_backbone: True
     softprompt: 10 # length of softprompt
+    load_linear: "models/finetune_baseline_linear_regression_l/75b64ece-9493-4c1b-9073-a8fba41777cd/state.pt"
 
 training:
     task: linear_regression
     curriculum:
         points:
             start: 11
-            end: 41
+            end: 21
             inc: 2
             interval: 2000
 
-out_dir: ../models/finetune_softprompt_linear_regression
+out_dir: ../models/finetune_softprompt_linear_regression_l
 
 wandb:
-    name: "finetune_softprompt_linear_regression_standard"
+    name: "finetune_softprompt_linear_regression_standard_l"

@@ -3,7 +3,7 @@ inherit:
     - wandb.yaml
 
 model:
-    n_dims: 20
+    n_dims: 10
     n_positions: 101
 
 training:
@@ -13,10 +13,10 @@ training:
     learning_rate: 0.001
     save_every_steps: 1000
     keep_every_steps: 100000
-    train_steps: 20001
+    train_steps: 15001
     curriculum:
         dims:
             start: 5
-            end: 20
+            end: 10
             inc: 1
             interval: 2000

@@ -11,11 +11,11 @@ training:
     curriculum:
         points:
             start: 11
-            end: 41
+            end: 21
             inc: 2
             interval: 2000
 
-out_dir: ../models/finetune_baseline_linear_regression
+out_dir: ../models/finetune_baseline_linear_regression_l
 
 wandb:
-    name: "finetune_baseline_linear_regression_standard"
+    name: "finetune_baseline_linear_regression_standard_l"

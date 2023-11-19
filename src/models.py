@@ -1,6 +1,7 @@
+import os
 import torch
 import torch.nn as nn
-from transformers import GPT2Model, GPT2Config
+from transformers import GPT2Model, GPT2Config, AutoTokenizer
 from tqdm import tqdm
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression, Lasso
@@ -21,7 +22,8 @@ def build_model(conf):
             n_head=conf.n_head,
             pretrained=conf.pretrained,
             freeze_backbone=conf.freeze_backbone,
-            softprompt=conf.softprompt
+            softprompt=conf.softprompt,
+            load_linear=conf.load_linear
         )
     else:
         raise NotImplementedError
@@ -81,7 +83,8 @@ def get_relevant_baselines(task_name):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pretrained=False, freeze_backbone=False, softprompt=False):
+    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, 
+                 pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None):
         super(TransformerModel, self).__init__()
         configuration = GPT2Config(
             n_positions=2 * n_positions,
@@ -100,7 +103,7 @@ class TransformerModel(nn.Module):
         self._read_in = nn.Linear(n_dims, n_embd)
         self.sp = None
         if softprompt:
-            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
+            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.05, 0.05))
         if pretrained:
             print("Using text pretrained GPT2")
             self._backbone = GPT2Model.from_pretrained("gpt2", 
@@ -120,6 +123,20 @@ class TransformerModel(nn.Module):
             self._backbone = GPT2Model(configuration)
         self._read_out = nn.Linear(n_embd, 1)
 
+        if load_linear is not None:
+            print("Loading weights for linear in/out layers.")
+            state = torch.load(os.path.join(os.path.dirname(os.path.dirname(__file__)), load_linear))
+            self._read_in.weight.data = state["model_state_dict"]["_read_in.weight"]
+            self._read_in.bias.data = state["model_state_dict"]["_read_in.bias"]
+            self._read_out.weight.data = state["model_state_dict"]["_read_out.weight"]
+            self._read_out.bias.data = state["model_state_dict"]["_read_out.bias"]
+            print("Also freezing the linear in/out layers.")
+            self._read_in.weight.requires_grad = False
+            self._read_in.bias.requires_grad = False
+            self._read_out.weight.requires_grad = False
+            self._read_out.weight.requires_grad = False
+            print("Done.")
+
     @staticmethod
     def _combine(xs_b, ys_b):
         """Interleaves the x's and the y's into a single sequence."""
@@ -134,6 +151,20 @@ class TransformerModel(nn.Module):
         zs = torch.stack((xs_b, ys_b_wide), dim=2)
         zs = zs.view(bsize, 2 * points, dim)
         return zs
+    
+    @staticmethod
+    def _format_text(xs_b, ys_b):
+        """Interleaves the x's and the y's into a single TEXT sequence."""
+        outs = []
+        bsize, points, dim = xs_b.shape
+        for b in range(bsize):
+            x, y = xs_b[b], ys_b[b]
+            out = ""
+            for p in range(points):
+                out += "x: {} y: {0:.2f}, ".format(" ".join([round(float(i), 2) for i in x[p].cpu().tolist()]), 
+                                                   y[p].cpu.item())
+            outs.append(out)
+        return outs
 
     def forward(self, xs, ys, inds=None):
         if inds is None:
@@ -142,6 +173,7 @@ class TransformerModel(nn.Module):
             inds = torch.tensor(inds)
             if max(inds) >= ys.shape[1] or min(inds) < 0:
                 raise ValueError("inds contain indices where xs and ys are not defined")
+
         zs = self._combine(xs, ys)
         embeds = self._read_in(zs)
         # combine softprompt
@@ -149,6 +181,7 @@ class TransformerModel(nn.Module):
             B = zs.shape[0]
             embeds = torch.cat([self.sp.repeat(B, 1, 1), embeds], dim=1)
         output = self._backbone(inputs_embeds=embeds).last_hidden_state
+                
         prediction = self._read_out(output)
         return prediction[:, ::2, 0][:, inds]  # predict only on xs
 

@@ -23,6 +23,7 @@ model_schema = {
     'pretrained': merge(tboolean, default(False)),
     'freeze_backbone': merge(tboolean, default(False)),
     'softprompt': merge(tinteger, default(0)),
+    'load_linear': merge(tstring, default(None)),
 }
 
 curriculum_base_schema = {
