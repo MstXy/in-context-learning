@@ -20,6 +20,8 @@ model_schema = {
     "n_embd": merge(tinteger, required),
     "n_layer": merge(tinteger, required),
     "n_head": merge(tinteger, required),
+    'pretrained': merge(tboolean, default(False)),
+    'freeze_backbone': merge(tboolean, default(False)),
 }
 
 curriculum_base_schema = {

@@ -19,6 +19,9 @@ def build_model(conf):
             n_embd=conf.n_embd,
             n_layer=conf.n_layer,
             n_head=conf.n_head,
+            pretrained=conf.pretrained,
+            freeze_backbone=conf.freeze_backbone,
+            softprompt=conf.softprompt
         )
     else:
         raise NotImplementedError
@@ -78,7 +81,7 @@ def get_relevant_baselines(task_name):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4):
+    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pretrained=False, freeze_backbone=False, softprompt=False):
         super(TransformerModel, self).__init__()
         configuration = GPT2Config(
             n_positions=2 * n_positions,
@@ -95,7 +98,25 @@ class TransformerModel(nn.Module):
         self.n_positions = n_positions
         self.n_dims = n_dims
         self._read_in = nn.Linear(n_dims, n_embd)
-        self._backbone = GPT2Model(configuration)
+        if softprompt:
+            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
+        if pretrained:
+            print("Using text pretrained GPT2")
+            self._backbone = GPT2Model.from_pretrained("gpt2", 
+                                                       resid_pdrop=0.0,
+                                                       embd_pdrop=0.0,
+                                                       attn_pdrop=0.0,
+                                                       use_cache=False,
+                                                    )
+            if freeze_backbone:
+                print("Freezing backbone (GPT-2):")
+                for name, param in self._backbone.named_parameters():
+                    # print(name)
+                    param.requires_grad = False
+                print("Done.")
+        else:
+            print("Training GPT2 from scratch")
+            self._backbone = GPT2Model(configuration)
         self._read_out = nn.Linear(n_embd, 1)
 
     @staticmethod
@@ -122,6 +143,10 @@ class TransformerModel(nn.Module):
                 raise ValueError("inds contain indices where xs and ys are not defined")
         zs = self._combine(xs, ys)
         embeds = self._read_in(zs)
+        # combine softprompt
+        if self.sp is not None:
+            B = zs.shape[0]
+            embeds = torch.cat([self.sp.repeat(B, 1, 1), embeds], dim=1)
         output = self._backbone(inputs_embeds=embeds).last_hidden_state
         prediction = self._read_out(output)
         return prediction[:, ::2, 0][:, inds]  # predict only on xs
