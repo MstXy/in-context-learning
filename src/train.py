@@ -167,6 +167,9 @@ if __name__ == "__main__":
     assert args.model.family in ["gpt2", "lstm"]
     print(f"Running with: {args}")
 
+    # for Debug
+    args.test_run = True # False
+
     if not args.test_run:
         run_id = args.training.resume_id
         if run_id is None:

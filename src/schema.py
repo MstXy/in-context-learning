@@ -22,6 +22,7 @@ model_schema = {
     "n_head": merge(tinteger, required),
     'pretrained': merge(tboolean, default(False)),
     'freeze_backbone': merge(tboolean, default(False)),
+    'softprompt': merge(tinteger, default(0)),
 }
 
 curriculum_base_schema = {

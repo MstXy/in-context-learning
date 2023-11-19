@@ -98,6 +98,7 @@ class TransformerModel(nn.Module):
         self.n_positions = n_positions
         self.n_dims = n_dims
         self._read_in = nn.Linear(n_dims, n_embd)
+        self.sp = None
         if softprompt:
             self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
         if pretrained:
