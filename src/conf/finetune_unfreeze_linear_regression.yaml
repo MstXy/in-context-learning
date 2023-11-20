@@ -6,7 +6,7 @@ model:
     pretrained: True
     freeze_backbone: False
     softprompt: 0 # length of softprompt
-    load_linear: None
+    load_linear: null
 
 training:
     task: linear_regression
