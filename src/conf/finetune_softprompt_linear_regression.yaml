@@ -6,7 +6,7 @@ model:
     pretrained: True
     freeze_backbone: True
     softprompt: 10 # length of softprompt
-    load_linear: "models/finetune_baseline_linear_regression_l/75b64ece-9493-4c1b-9073-a8fba41777cd/state.pt"
+    load_linear: "models/linear_regression/finetune_baseline_linear_regression_l/state.pt"
 
 training:
     task: linear_regression
@@ -17,7 +17,7 @@ training:
             inc: 2
             interval: 2000
 
-out_dir: ../models/finetune_softprompt_linear_regression_l
+out_dir: ../models/linear_regression
 
 wandb:
     name: "finetune_softprompt_linear_regression_standard_l"

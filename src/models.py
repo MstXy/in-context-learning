@@ -103,7 +103,7 @@ class TransformerModel(nn.Module):
         self._read_in = nn.Linear(n_dims, n_embd)
         self.sp = None
         if softprompt:
-            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.05, 0.05))
+            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.1, 0.1))
         if pretrained:
             print("Using text pretrained GPT2")
             self._backbone = GPT2Model.from_pretrained("gpt2", 

@@ -12,27 +12,27 @@ palette = sns.color_palette("colorblind")
 
 relevant_model_names = {
     "linear_regression": [
-        "Transformer",
+        "Transformer-pretrained",
         "Least Squares",
         "3-Nearest Neighbors",
         "Averaging",
     ],
     "sparse_linear_regression": [
-        "Transformer",
+        "Transformer-pretrained",
         "Least Squares",
         "3-Nearest Neighbors",
         "Averaging",
         "Lasso (alpha=0.01)",
     ],
     "decision_tree": [
-        "Transformer",
+        "Transformer-pretrained",
         "3-Nearest Neighbors",
         "2-layer NN, GD",
         "Greedy Tree Learning",
         "XGBoost",
     ],
     "relu_2nn_regression": [
-        "Transformer",
+        "Transformer-pretrained",
         "Least Squares",
         "3-Nearest Neighbors",
         "2-layer NN, GD",

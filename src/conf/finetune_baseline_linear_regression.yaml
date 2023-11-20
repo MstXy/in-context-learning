@@ -5,6 +5,8 @@ inherit:
 model:
     pretrained: True
     freeze_backbone: True
+    softprompt: 0 # length of softprompt
+    load_linear: None
 
 training:
     task: linear_regression
@@ -15,7 +17,7 @@ training:
             inc: 2
             interval: 2000
 
-out_dir: ../models/finetune_baseline_linear_regression_l
+out_dir: ../models/linear_regression
 
 wandb:
     name: "finetune_baseline_linear_regression_standard_l"
