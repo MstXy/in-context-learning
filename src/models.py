@@ -103,7 +103,7 @@ class TransformerModel(nn.Module):
         self._read_in = nn.Linear(n_dims, n_embd)
         self.sp = None
         if softprompt:
-            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.1, 0.1))
+            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
         if pretrained:
             print("Using text pretrained GPT2")
             self._backbone = GPT2Model.from_pretrained("gpt2", 
@@ -130,11 +130,11 @@ class TransformerModel(nn.Module):
             self._read_in.bias.data = state["model_state_dict"]["_read_in.bias"]
             self._read_out.weight.data = state["model_state_dict"]["_read_out.weight"]
             self._read_out.bias.data = state["model_state_dict"]["_read_out.bias"]
-            print("Also freezing the linear in/out layers.")
-            self._read_in.weight.requires_grad = False
-            self._read_in.bias.requires_grad = False
-            self._read_out.weight.requires_grad = False
-            self._read_out.weight.requires_grad = False
+            # print("Also freezing the linear in/out layers.")
+            # self._read_in.weight.requires_grad = False
+            # self._read_in.bias.requires_grad = False
+            # self._read_out.weight.requires_grad = False
+            # self._read_out.bias.requires_grad = False
             print("Done.")
 
     @staticmethod
@@ -183,6 +183,11 @@ class TransformerModel(nn.Module):
         output = self._backbone(inputs_embeds=embeds).last_hidden_state
                 
         prediction = self._read_out(output)
+        # get rid of softprompt, 
+        # here we need this step because the loss is computed on all x's, 
+        # not only the last x_query
+        if self.sp is not None:
+            prediction = prediction[:, self.sp.shape[0]:]
         return prediction[:, ::2, 0][:, inds]  # predict only on xs
 
 
