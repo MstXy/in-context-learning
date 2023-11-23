@@ -1,7 +1,11 @@
 import os
 import torch
 import torch.nn as nn
-from transformers import GPT2Model, GPT2Config, AutoTokenizer
+
+from transformers import GPT2Model, GPT2Config
+from model_gpt2 import GPT2Backbone
+from peft import LoraConfig, get_peft_model
+
 from tqdm import tqdm
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression, Lasso
@@ -23,7 +27,8 @@ def build_model(conf):
             pretrained=conf.pretrained,
             freeze_backbone=conf.freeze_backbone,
             softprompt=conf.softprompt,
-            load_linear=conf.load_linear
+            load_linear=conf.load_linear,
+            lora=conf.lora
         )
     else:
         raise NotImplementedError
@@ -84,7 +89,7 @@ def get_relevant_baselines(task_name):
 
 class TransformerModel(nn.Module):
     def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, 
-                 pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None):
+                 pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None, lora=False):
         super(TransformerModel, self).__init__()
         configuration = GPT2Config(
             n_positions=2 * n_positions,
@@ -106,7 +111,7 @@ class TransformerModel(nn.Module):
             self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
         if pretrained:
             print("Using text pretrained GPT2")
-            self._backbone = GPT2Model.from_pretrained("gpt2", 
+            self._backbone = GPT2Backbone.from_pretrained("gpt2", 
                                                        resid_pdrop=0.0,
                                                        embd_pdrop=0.0,
                                                        attn_pdrop=0.0,
@@ -118,6 +123,16 @@ class TransformerModel(nn.Module):
                     # print(name)
                     param.requires_grad = False
                 print("Done.")
+            if lora:
+                print("Using Lora finetuning")
+                lora_config = LoraConfig(
+                    r=32,
+                    lora_alpha=32,
+                    lora_dropout=0.01,
+                    bias="none",
+                    task_type="CAUSAL_LM", # For avaiable task types, see: https://github.com/huggingface/peft/blob/main/src/peft/utils/peft_types.py#L35
+                )
+                self._backbone = get_peft_model(self._backbone, lora_config)
         else:
             print("Training GPT2 from scratch")
             self._backbone = GPT2Model(configuration)

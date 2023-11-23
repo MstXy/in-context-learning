@@ -168,7 +168,7 @@ if __name__ == "__main__":
     print(f"Running with: {args}")
 
     # FLAG: for DEBUG
-    args.test_run = False # False
+    args.test_run = False # default: False
 
     if not args.test_run:
         run_id = args.training.resume_id

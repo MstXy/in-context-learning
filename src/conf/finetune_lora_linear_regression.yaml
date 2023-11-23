@@ -4,9 +4,10 @@ inherit:
 # pretrained weights
 model:
     pretrained: True
-    freeze_backbone: True
-    softprompt: 100 # length of softprompt
+    freeze_backbone: False
+    softprompt: 0 # length of softprompt
     load_linear: "models/linear_regression/finetune_baseline_linear_regression_l/state.pt"
+    lora: True
 
 training:
     task: linear_regression
@@ -20,4 +21,4 @@ training:
 out_dir: ../models/linear_regression
 
 wandb:
-    name: "finetune_softprompt_linear_regression_standard_100"
+    name: "finetune_lora_linear_regression_standard"
