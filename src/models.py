@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from transformers import GPT2Model, GPT2Config
 from model_gpt2 import GPT2Backbone
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, PromptTuningConfig, PromptTuningInit, get_peft_model
 
 from tqdm import tqdm
 from sklearn.svm import LinearSVC
@@ -126,13 +126,21 @@ class TransformerModel(nn.Module):
             if lora:
                 print("Using Lora finetuning")
                 lora_config = LoraConfig(
-                    r=32,
-                    lora_alpha=32,
+                    r=128, # 32
+                    lora_alpha=128, # 32
                     lora_dropout=0.01,
                     bias="none",
                     task_type="CAUSAL_LM", # For avaiable task types, see: https://github.com/huggingface/peft/blob/main/src/peft/utils/peft_types.py#L35
                 )
                 self._backbone = get_peft_model(self._backbone, lora_config)
+            ## alternate way of using PEFT to do softprompting, worse result.
+            # if softprompt:
+            #     print("Using Soft Prompt finetuning")
+            #     sp_config = PromptTuningConfig(
+            #         num_virtual_tokens=10,
+            #         task_type="CAUSAL_LM",
+            #     )
+            #     self._backbone = get_peft_model(self._backbone, sp_config)
         else:
             print("Training GPT2 from scratch")
             self._backbone = GPT2Model(configuration)

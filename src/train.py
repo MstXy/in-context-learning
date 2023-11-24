@@ -155,6 +155,10 @@ def main(args):
     model.cuda()
     model.train()
 
+    # print trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    print("{:.2f} M trainable parameters, {:.2f} M total parameters. [{:.2%}]".format(trainable_params/1e6, total_params/1e6, trainable_params/total_params))
     train(model, args)
 
     if not args.test_run:
