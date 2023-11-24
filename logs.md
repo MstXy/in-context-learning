@@ -6,3 +6,5 @@ Train logs
 
 - SoftPrompt (20): 0.02 M trainable parameters, 124.46 M total parameters. [0.01%] 3018 MB GPU
 - SoftPrompt (100): 0.02 M trainable parameters, 124.46 M total parameters. [0.01%] 8720 MB GPU
+
+- Train from Scratch: 123.82 M trainable parameters, 123.82 M total parameters. [100.00%] 3198 MB GPU

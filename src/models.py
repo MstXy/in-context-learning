@@ -126,8 +126,8 @@ class TransformerModel(nn.Module):
             if lora:
                 print("Using Lora finetuning")
                 lora_config = LoraConfig(
-                    r=128, # 32
-                    lora_alpha=128, # 32
+                    r=32, # 32
+                    lora_alpha=32, # 32
                     lora_dropout=0.01,
                     bias="none",
                     task_type="CAUSAL_LM", # For avaiable task types, see: https://github.com/huggingface/peft/blob/main/src/peft/utils/peft_types.py#L35

@@ -1,12 +1,20 @@
 inherit: 
-    - base.yaml
+    - exp_base.yaml
+
+model:
+    pretrained: False
+    freeze_backbone: False
+    softprompt: 0 # length of softprompt
+    load_linear: null
+    lora: False
+
 
 training:
     task: linear_regression
     curriculum:
         points:
             start: 11
-            end: 41
+            end: 21
             inc: 2
             interval: 2000
 
