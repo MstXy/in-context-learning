@@ -7,6 +7,7 @@ model:
     freeze_backbone: True
     softprompt: 0 # length of softprompt
     load_linear: null
+    lora: False
 
 training:
     task: linear_regression

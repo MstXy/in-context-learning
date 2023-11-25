@@ -5,7 +5,7 @@ inherit:
 model:
     pretrained: True
     freeze_backbone: True
-    softprompt: 100 # length of softprompt
+    softprompt: 20 # length of softprompt
     load_linear: "models/linear_regression/finetune_baseline_linear_regression_l/state.pt"
     lora: False
 

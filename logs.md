@@ -4,7 +4,10 @@ Train logs
 - **LoRA (32/32)**: 1.19 M trainable parameters, 125.63 M total parameters. [0.95%] 2688 MB GPU
 - LoRA (128/128): 4.73 M trainable parameters, 129.17 M total parameters. [3.66%] 2712 MB GPU
 
+- SoftPrompt (10): 0.02 M trainable parameters, 124.46 M total parameters. [0.01%] 3021 MB GPU
 - SoftPrompt (20): 0.02 M trainable parameters, 124.46 M total parameters. [0.01%] 3018 MB GPU
 - SoftPrompt (100): 0.02 M trainable parameters, 124.46 M total parameters. [0.01%] 8720 MB GPU
 
-- Train from Scratch: 123.82 M trainable parameters, 123.82 M total parameters. [100.00%] 3198 MB GPU
+- Train from Scratch / Full Finetune: 124.45 M trainable parameters, 124.45 M total parameters. [100.00%] 3198 MB GPU
+
+- Pre-Trained (fit linear layer): 0.01 M trainable parameters, 124.45 M total parameters. [0.01%] 1991 MB GPU
