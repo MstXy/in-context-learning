@@ -1,4 +1,4 @@
-# Fine-Tuning Transformers to In-Context Learn Simple Function Classes.
+# Fine-Tuning Text Pre-Trained Transformers to In-Context Learn Simple Function Classes.
 
 ### CS 182/282A Deep Learning Final Project
 
