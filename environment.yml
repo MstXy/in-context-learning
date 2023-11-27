@@ -5,17 +5,18 @@ channels:
 dependencies:
   - pip=21.2.4
   - python=3.8.12
-  - pytorch=1.11.0
   - pip:
     - jupyter==1.0.0
     - matplotlib==3.5.2
     - numpy==1.22.3
     - pandas==1.4.2
+    - peft==0.6.2
     - quinine==0.3.0
     - scikit-learn==1.0.2
     - seaborn==0.11.2
+    - torch==2.1.1
     - tqdm==4.64.0
-    - transformers==4.17.0
+    - transformers==4.35.2
     - wandb==0.12.11
     - xgboost==1.6.1
     - protobuf==3.20.1
