@@ -14,7 +14,15 @@ Our project extends from the paper: <br>
 *Shivam Garg\*, Dimitris Tsipras\*, Percy Liang, Gregory Valiant* <br>
 Paper: http://arxiv.org/abs/2208.01066 <br>
 
-Our project explores the in-context learning performance of text pre-trained GPT-2. We then fine-tune using techniques such as Soft Prompting, focusing primarily on the simple linear regression task to compare the results. We also extends to m-degree polynomial functions, as well as sparse linear regression and decision trees. 
+Our project explores the in-context learning performance of text pre-trained GPT-2. We use five different approaches: 
+
+- infer from text pre-trained weights with default (vectorized) input,
+- infer from text pre-trained weights with devised text input,
+- full fine-tune,
+- fine-tune with soft prompting,
+- fine-tune with low rank adaptation (LoRA). 
+
+We focus primarily on the simple linear regression task to compare the results. 
 
 ## Getting started
 1. Clone the repository
@@ -29,7 +37,7 @@ Our project explores the in-context learning performance of text pre-trained GPT
     conda activate icl
     ```
 
-3. Download [model checkpoints](https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip) and extract them in the current directory.
+3. Download [model checkpoints](https://drive.google.com/file/d/15l2CPrhuiVSmrYG7C3TSfCnPiKKkPiqg/view?usp=drive_link) and extract them in the current directory.
 
     ```
     wget https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip
@@ -44,9 +52,24 @@ Our project explores the in-context learning performance of text pre-trained GPT
     ```
     cd src
 
-    ## Task: linear regression
+    ## Approach: only pre-train
+    python train.py --config conf/finetune_baseline_linear_regression.yaml
+    
+    ## Approach: full fine-tune
+    python train.py --config conf/finetune_unfreeze_linear_regression.yaml
+
+    ## Approach: soft prompting fine-tune
+    python train.py --config conf/finetune_softprompt_linear_regression.yaml
+
+    ## Approach: LoRA fine-tune
+    python train.py --config conf/finetune_lora_linear_regression.yaml
+
+    ## Approach: train from scratch
     python train.py --config conf/linear_regression.yaml
 
-    ## Task: sparse linear regression
-    python train.py --config conf/sparse_linear_regression.yaml
+    ## Approach: text input from pre-trained weights
+    python train.py --config conf/finetune_textbase_linear_regression.yaml
+    # note this approach fails to generate numerical output, so will throw out error.
+    # but it will be fun to run it in debug mode to check the outputs.
+    # vscode launch.json file is attached. 
     ```
