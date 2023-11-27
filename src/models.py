@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 
-from transformers import GPT2Model, GPT2Config
+from transformers import GPT2Model, GPT2Config, AutoTokenizer, GPT2LMHeadModel
 from model_gpt2 import GPT2Backbone
 from peft import LoraConfig, PromptTuningConfig, PromptTuningInit, get_peft_model
 
@@ -28,7 +28,8 @@ def build_model(conf):
             freeze_backbone=conf.freeze_backbone,
             softprompt=conf.softprompt,
             load_linear=conf.load_linear,
-            lora=conf.lora
+            lora=conf.lora,
+            text_input=conf.text_input
         )
     else:
         raise NotImplementedError
@@ -89,7 +90,7 @@ def get_relevant_baselines(task_name):
 
 class TransformerModel(nn.Module):
     def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, 
-                 pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None, lora=False):
+                 pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None, lora=False, text_input=False):
         super(TransformerModel, self).__init__()
         configuration = GPT2Config(
             n_positions=2 * n_positions,
@@ -105,60 +106,67 @@ class TransformerModel(nn.Module):
 
         self.n_positions = n_positions
         self.n_dims = n_dims
-        self._read_in = nn.Linear(n_dims, n_embd)
-        self.sp = None
-        if softprompt:
-            self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
-        if pretrained:
-            print("Using text pretrained GPT2")
-            self._backbone = GPT2Backbone.from_pretrained("gpt2", 
-                                                       resid_pdrop=0.0,
-                                                       embd_pdrop=0.0,
-                                                       attn_pdrop=0.0,
-                                                       use_cache=False,
-                                                    )
-            if freeze_backbone:
-                print("Freezing backbone (GPT-2):")
-                for name, param in self._backbone.named_parameters():
-                    # print(name)
-                    param.requires_grad = False
-                print("Done.")
-            if lora:
-                print("Using Lora finetuning")
-                lora_config = LoraConfig(
-                    r=32, # 32
-                    lora_alpha=32, # 32
-                    lora_dropout=0.01,
-                    bias="none",
-                    task_type="CAUSAL_LM", # For avaiable task types, see: https://github.com/huggingface/peft/blob/main/src/peft/utils/peft_types.py#L35
-                )
-                self._backbone = get_peft_model(self._backbone, lora_config)
-            ## alternate way of using PEFT to do softprompting, worse result.
-            # if softprompt:
-            #     print("Using Soft Prompt finetuning")
-            #     sp_config = PromptTuningConfig(
-            #         num_virtual_tokens=10,
-            #         task_type="CAUSAL_LM",
-            #     )
-            #     self._backbone = get_peft_model(self._backbone, sp_config)
+        self.text_input = text_input
+        if self.text_input:
+            print("Using text input.")
+            self._tokenizer = AutoTokenizer.from_pretrained("gpt2")
+            self._tokenizer.pad_token = self._tokenizer.eos_token
+            self._model = GPT2LMHeadModel.from_pretrained("gpt2")
         else:
-            print("Training GPT2 from scratch")
-            self._backbone = GPT2Model(configuration)
-        self._read_out = nn.Linear(n_embd, 1)
+            self._read_in = nn.Linear(n_dims, n_embd)
+            self.sp = None
+            if softprompt:
+                self.sp = nn.parameter.Parameter(torch.FloatTensor(softprompt, n_embd).uniform_(-0.5, 0.5))
+            if pretrained:
+                print("Using text pretrained GPT2")
+                self._backbone = GPT2Backbone.from_pretrained("gpt2", 
+                                                        resid_pdrop=0.0,
+                                                        embd_pdrop=0.0,
+                                                        attn_pdrop=0.0,
+                                                        use_cache=False,
+                                                        )
+                if freeze_backbone:
+                    print("Freezing backbone (GPT-2):")
+                    for name, param in self._backbone.named_parameters():
+                        # print(name)
+                        param.requires_grad = False
+                    print("Done.")
+                if lora:
+                    print("Using Lora finetuning")
+                    lora_config = LoraConfig(
+                        r=32, # 32
+                        lora_alpha=32, # 32
+                        lora_dropout=0.01,
+                        bias="none",
+                        task_type="CAUSAL_LM", # For avaiable task types, see: https://github.com/huggingface/peft/blob/main/src/peft/utils/peft_types.py#L35
+                    )
+                    self._backbone = get_peft_model(self._backbone, lora_config)
+                ## alternate way of using PEFT to do softprompting, w. worse result.
+                # if softprompt:
+                #     print("Using Soft Prompt finetuning")
+                #     sp_config = PromptTuningConfig(
+                #         num_virtual_tokens=10,
+                #         task_type="CAUSAL_LM",
+                #     )
+                #     self._backbone = get_peft_model(self._backbone, sp_config)
+            else:
+                print("Training GPT2 from scratch")
+                self._backbone = GPT2Model(configuration)
+            self._read_out = nn.Linear(n_embd, 1)
 
-        if load_linear is not None:
-            print("Loading weights for linear in/out layers.")
-            state = torch.load(os.path.join(os.path.dirname(os.path.dirname(__file__)), load_linear))
-            self._read_in.weight.data = state["model_state_dict"]["_read_in.weight"]
-            self._read_in.bias.data = state["model_state_dict"]["_read_in.bias"]
-            self._read_out.weight.data = state["model_state_dict"]["_read_out.weight"]
-            self._read_out.bias.data = state["model_state_dict"]["_read_out.bias"]
-            # print("Also freezing the linear in/out layers.")
-            # self._read_in.weight.requires_grad = False
-            # self._read_in.bias.requires_grad = False
-            # self._read_out.weight.requires_grad = False
-            # self._read_out.bias.requires_grad = False
-            print("Done.")
+            if load_linear is not None:
+                print("Loading weights for linear in/out layers.")
+                state = torch.load(os.path.join(os.path.dirname(os.path.dirname(__file__)), load_linear))
+                self._read_in.weight.data = state["model_state_dict"]["_read_in.weight"]
+                self._read_in.bias.data = state["model_state_dict"]["_read_in.bias"]
+                self._read_out.weight.data = state["model_state_dict"]["_read_out.weight"]
+                self._read_out.bias.data = state["model_state_dict"]["_read_out.bias"]
+                # print("Also freezing the linear in/out layers.")
+                # self._read_in.weight.requires_grad = False
+                # self._read_in.bias.requires_grad = False
+                # self._read_out.weight.requires_grad = False
+                # self._read_out.bias.requires_grad = False
+                print("Done.")
 
     @staticmethod
     def _combine(xs_b, ys_b):
@@ -183,10 +191,14 @@ class TransformerModel(nn.Module):
         for b in range(bsize):
             x, y = xs_b[b], ys_b[b]
             out = ""
-            for p in range(points):
-                out += "x: {} y: {0:.2f}, ".format(" ".join([round(float(i), 2) for i in x[p].cpu().tolist()]), 
-                                                   y[p].cpu.item())
+            for p in range(points - 1):
+                out += "x: {} y: {:.2f}, ".format(" ".join(["{:.2f}".format(float(i)) for i in x[p].cpu().tolist()]), 
+                                                   y[p].cpu().item())
+                
+            # the last example should only contain values for x, not y
+            out += "x: {} y: ".format(" ".join(["{:.2f}".format(float(i)) for i in x[p].cpu().tolist()]))
             outs.append(out)
+
         return outs
 
     def forward(self, xs, ys, inds=None):
@@ -197,21 +209,30 @@ class TransformerModel(nn.Module):
             if max(inds) >= ys.shape[1] or min(inds) < 0:
                 raise ValueError("inds contain indices where xs and ys are not defined")
 
-        zs = self._combine(xs, ys)
-        embeds = self._read_in(zs)
-        # combine softprompt
-        if self.sp is not None:
-            B = zs.shape[0]
-            embeds = torch.cat([self.sp.repeat(B, 1, 1), embeds], dim=1)
-        output = self._backbone(inputs_embeds=embeds).last_hidden_state
-                
-        prediction = self._read_out(output)
-        # get rid of softprompt, 
-        # here we need this step because the loss is computed on all x's, 
-        # not only the last x_query
-        if self.sp is not None:
-            prediction = prediction[:, self.sp.shape[0]:]
-        return prediction[:, ::2, 0][:, inds]  # predict only on xs
+        if self.text_input:
+            zs = self._format_text(xs, ys)
+            inputs = self._tokenizer(zs, return_tensors="pt", padding=True)
+            # move to cuda:
+            inputs = {k: v.cuda() for k, v in inputs.items()}
+            outputs = self._model.generate(**inputs)
+            texts = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
+            return texts.split(' ')[-1] # ALWAYS: "The" / "\n"
+        else:
+            zs = self._combine(xs, ys)
+            embeds = self._read_in(zs)
+            # combine softprompt
+            if self.sp is not None:
+                B = zs.shape[0]
+                embeds = torch.cat([self.sp.repeat(B, 1, 1), embeds], dim=1)
+            output = self._backbone(inputs_embeds=embeds).last_hidden_state
+                    
+            prediction = self._read_out(output)
+            # get rid of softprompt, 
+            # here we need this step because the loss is computed on all x's, 
+            # not only the last x_query
+            if self.sp is not None:
+                prediction = prediction[:, self.sp.shape[0]:]
+            return prediction[:, ::2, 0][:, inds]  # predict only on xs
 
 
 class NNModel:

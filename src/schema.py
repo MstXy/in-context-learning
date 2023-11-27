@@ -24,7 +24,8 @@ model_schema = {
     'freeze_backbone': merge(tboolean, default(False)),
     'softprompt': merge(tinteger, default(0)),
     'load_linear': merge(tstring, nullable, default(None)),
-    'lora': merge(tboolean, default(False))
+    'lora': merge(tboolean, default(False)),
+    'text_input': merge(tboolean, default(False))
 }
 
 curriculum_base_schema = {
