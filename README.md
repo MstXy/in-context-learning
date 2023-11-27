@@ -36,7 +36,8 @@ Our project explores the in-context learning performance of text pre-trained GPT
     unzip models.zip
     ```
 
-4. To evaluate, use `eval.ipynb`, each step is already in the notebook.
+4. To evaluate, use `eval.ipynb`, each step is already in the notebook. 
+> **Note**: all metrics have already been computed by the end of each training, so we removed `state.pt` in the folder to save space. 
 
 5. To train, in `conf/wandb.yaml`, provide wandb user name for `entity`. Then for different task, run:
 
