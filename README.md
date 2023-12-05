@@ -14,7 +14,13 @@ Our project extends from the paper: <br>
 *Shivam Garg\*, Dimitris Tsipras\*, Percy Liang, Gregory Valiant* <br>
 Paper: http://arxiv.org/abs/2208.01066 <br>
 
-Our project explores the in-context learning performance of text pre-trained GPT-2. We use five different approaches: 
+We find the paper's practical value limited due to its training approach, which involves starting from scratch. Instead, our focus is on exploring the in-context learning capability of a text pre-trained language model, specifically GPT-2, in the context of a linear regression task. 
+
+Given the substantial domain shift, we propose two inference approaches. The first adheres to the methodology in the referenced paper, utilizing vectorized xy-pairs as inputs. The second transforms vectorized xy-pairs into a single line of text. Our experimentation reveals that the second approach fails, while the first approach successfully learns the linear regression task. This outcome underscores the presence of valuable knowledge in text pre-trained weights that can be leveraged.
+
+We thus further experiment with various fine-tuning techniques, including full fine-tune, soft prompting, and low rank adaptation (LoRA). Through a comprehensive comparison and analysis of results concerning computation and in-context learning errors, we demonstrate that LoRA is most effective in transferring text pre-trained knowledge to in-context linear regression learning with minimal additional computational cost.
+
+In short, our project explores the in-context learning performance of text pre-trained GPT-2. We use five different approaches: 
 
 - infer from text pre-trained weights with default (vectorized) input,
 - infer from text pre-trained weights with devised text input,
