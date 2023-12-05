@@ -37,7 +37,7 @@ We focus primarily on the simple linear regression task to compare the results.
     conda activate icl
     ```
 
-3. Download [model checkpoints](https://drive.google.com/file/d/15l2CPrhuiVSmrYG7C3TSfCnPiKKkPiqg/view?usp=drive_link) and extract them in the current directory.
+3. Download [model checkpoints](https://drive.google.com/file/d/1zuWgKbmWAj8GpyLmU_cg04iV4u4TUfNi/view?usp=sharing) and extract them in the current directory under `models` folder.
 
     ```
     unzip models.zip
