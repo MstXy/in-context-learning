@@ -40,7 +40,6 @@ We focus primarily on the simple linear regression task to compare the results.
 3. Download [model checkpoints](https://drive.google.com/file/d/15l2CPrhuiVSmrYG7C3TSfCnPiKKkPiqg/view?usp=drive_link) and extract them in the current directory.
 
     ```
-    wget https://github.com/dtsip/in-context-learning/releases/download/initial/models.zip
     unzip models.zip
     ```
 
