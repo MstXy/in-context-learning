@@ -93,14 +93,13 @@ class TransformerModel(nn.Module):
                  pretrained=False, freeze_backbone=False, softprompt=False, load_linear=None, lora=False, text_input=False):
         super(TransformerModel, self).__init__()
         configuration = GPT2Config(
-            n_positions=2 * n_positions,
             n_embd=n_embd,
             n_layer=n_layer,
             n_head=n_head,
             resid_pdrop=0.0,
             embd_pdrop=0.0,
             attn_pdrop=0.0,
-            use_cache=False,
+            # use_cache=False,
         )
         self.name = f"gpt2_embd={n_embd}_layer={n_layer}_head={n_head}"
 
@@ -125,12 +124,6 @@ class TransformerModel(nn.Module):
                                                         attn_pdrop=0.0,
                                                         use_cache=False,
                                                         )
-                if freeze_backbone:
-                    print("Freezing backbone (GPT-2):")
-                    for name, param in self._backbone.named_parameters():
-                        # print(name)
-                        param.requires_grad = False
-                    print("Done.")
                 if lora:
                     print("Using Lora finetuning")
                     lora_config = LoraConfig(
@@ -152,6 +145,13 @@ class TransformerModel(nn.Module):
             else:
                 print("Training GPT2 from scratch")
                 self._backbone = GPT2Model(configuration)
+            
+            if freeze_backbone:
+                print("Freezing backbone (GPT-2):")
+                for name, param in self._backbone.named_parameters():
+                    # print(name)
+                    param.requires_grad = False
+                print("Done.")
             self._read_out = nn.Linear(n_embd, 1)
 
             if load_linear is not None:
