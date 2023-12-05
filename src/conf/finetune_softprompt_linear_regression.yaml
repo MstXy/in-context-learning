@@ -6,7 +6,7 @@ model:
     pretrained: True
     freeze_backbone: True
     softprompt: 20 # length of softprompt
-    load_linear: "models/linear_regression/finetune_baseline_linear_regression_l/state.pt"
+    load_linear: "models/linear_regression/only_pre-train/state.pt"
     lora: False
 
 training:
