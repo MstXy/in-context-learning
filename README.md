@@ -1,4 +1,4 @@
-his repository contains the code and models for our paper:
+This repository contains the code and models for our paper:
 
 ## Getting started
 You can start by cloning our repository and following the steps below.
