@@ -21,8 +21,14 @@ def build_model(conf, seq):
             n_head=conf.n_head,
             seq=seq
         )
+    # TODO(emma) clean up the code and just put llama or gpt2 in the yaml
+    elif "gpt2" in conf.family:
+        model = FromLanguageTransformerModel(conf.n_dims, family="gpt2", checkpoint=conf.family, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
+    # elif "llama2" in conf.family:
+    #     model = FromLanguageTransformerModel(conf.n_dims, family="llama2", checkpoint=conf.family, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
+
     else:
-        raise NotImplementedError
+        raise NotImplementedError(f"Model not implemented.")
 
     return model
 
@@ -142,6 +148,113 @@ class TransformerModel(nn.Module):
         output = self._backbone(inputs_embeds=embeds).last_hidden_state
         prediction = self._read_out(output)
         return prediction[:, ::2, :][:, inds]  # predict only on xs
+
+class FromLanguageTransformerModel(nn.Module):
+    def __init__(self, n_dims, family="gpt2", checkpoint="openai-community/gpt2", n_embd=128, mlp=False, freeze_ln=False, seq=False):
+        super(FromLanguageTransformerModel, self).__init__()
+
+        # there is no need for a GPT2 configuration if you use a pretrained model.
+        self.name = family
+
+        self.n_dims = n_dims
+
+        if mlp:
+            self._read_in = nn.Sequential(
+                nn.Linear(n_dims, n_dims*2),
+                nn.ReLU(),
+                nn.Linear(n_dims * 2, n_dims*4),
+                nn.ReLU(),
+                nn.Linear(n_dims * 4, n_embd)
+            )
+        else:
+            self._read_in = nn.Linear(n_dims, n_embd)
+
+        if family == "gpt2":
+            self._backbone = GPT2Model.from_pretrained(checkpoint)
+        # elif family == "Llama-2":
+        #     self._backbone = LlamaForCausalLM.from_pretrained(checkpoint)
+
+        if freeze_ln:
+            # freeze all the parameters of the GPT2 backbone 
+            for name, param in self._backbone.named_parameters():
+                if 'wte' not in name and 'wpe' not in name:
+                    param.requires_grad = False
+        else: 
+            for name, param in self._backbone.named_parameters():
+                if 'wte' not in name and 'wpe' not in name and 'ln' not in name:
+                    param.requires_grad = False
+
+        self.seq = seq
+        if self.seq:
+            self._read_out = nn.Linear(n_embd, n_dims) 
+        else: 
+            self._read_out = nn.Linear(n_embd, 1)
+
+    @staticmethod
+    def _combine(xs_b, ys_b, seq):
+        """Interleaves the x's and the y's into a single sequence."""
+        bsize, points, dim = xs_b.shape
+        if not seq:
+            ys_b = torch.cat(
+                (
+                    ys_b.view(bsize, points, 1),
+                    torch.zeros(bsize, points, dim - 1, device=ys_b.device),
+                ),
+                axis=2,
+            )
+        zs = torch.stack((xs_b, ys_b), dim=2)
+        zs = zs.view(bsize, 2 * points, dim)
+
+        return zs
+
+        # zs = torch.empty(xs_b.size(0), xs_b.size(1) + ys_b.size(1), xs_b.size(2), dtype=xs_b.dtype, device=xs_b.device)
+        # zs[:, ::2, :] = xs_b
+        # zs[:, 1::2, :] = ys_b
+        # return zs
+        
+
+    def forward(self, xs, ys, inds=None):
+        if inds is None:
+            inds = torch.arange(ys.shape[1])
+        else:
+            inds = torch.tensor(inds)
+            if max(inds) >= ys.shape[1] or min(inds) < 0:
+                raise ValueError("inds contain indices where xs and ys are not defined")
+        zs = self._combine(xs, ys, self.seq)
+        # print(zs)
+        embeds = self._read_in(zs)
+        output = self._backbone(inputs_embeds=embeds).last_hidden_state
+        prediction = self._read_out(output)
+        return prediction[:, ::2, :][:, inds]  # predict only on xs
+    
+class FromSyntheticTransformerModel(nn.Module):
+    def __init__(self, n_dims, checkpoint, n_positions, n_embd=128, n_layer=12, n_head=4, family="gpt2", freeze_ln=False, seq=False):
+        super(FromSyntheticTransformerModel, self).__init__()
+
+        self.name = family
+
+        self.n_dims = n_dims
+
+        # TODO(emma): set name 
+
+        self.n_positions = n_positions
+        self.n_dims = n_dims
+        self._read_in = nn.Linear(n_dims, n_embd)
+
+        self._backbone = GPT2Model.from_pretrained(checkpoint)
+
+        if freeze_ln:
+            # freeze all the parameters of the GPT2 backbone 
+            for param in self._backbone.parameters():
+                param.requires_grad = False
+        else: 
+            for name, param in self._backbone.named_parameters():
+                if 'layer_norm' not in name:
+                    param.requires_grad = False
+    def forward(self, xs, ys, inds=None):
+        # TODO(emma) implement forward
+        return 
+
 
 
 class NNModel:

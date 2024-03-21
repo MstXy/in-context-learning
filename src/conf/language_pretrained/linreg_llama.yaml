@@ -1,0 +1,21 @@
+inherit: 
+    - base.yaml
+
+training:
+    task: linear_regression
+    curriculum:
+        points:
+            start: 11
+            end: 41
+            inc: 2
+            interval: 2000
+
+model:
+    family: meta-llama/Llama-2-7b
+    mlp: false
+    freeze_ln: true
+
+out_dir: ../models/linear_regression
+
+wandb:
+    name: "linear_regression_from_language_llama"
