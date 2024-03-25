@@ -14,6 +14,7 @@ model:
     name: meta-llama/Llama-2-7b
     mlp: true
     freeze_ln: true
+    from_scratch: false
 
 out_dir: ../models/linear_regression
 
