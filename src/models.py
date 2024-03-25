@@ -13,17 +13,19 @@ from base_models import NeuralNetwork, ParallelNetworks
 
 def build_model(conf, seq):
     if conf.family == "gpt2":
-        model = TransformerModel(
-            n_dims=conf.n_dims,
-            n_positions=conf.n_positions,
-            n_embd=conf.n_embd,
-            n_layer=conf.n_layer,
-            n_head=conf.n_head,
-            seq=seq
-        )
+        if "garg" not in conf.name:
+            print("Building a model from pre-trained GPT2 language model")
+            model = FromLanguageTransformerModel(conf.n_dims, family=conf.family, checkpoint=conf.name, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
+        else:
+            model = TransformerModel(
+                n_dims=conf.n_dims,
+                n_positions=conf.n_positions,
+                n_embd=conf.n_embd,
+                n_layer=conf.n_layer,
+                n_head=conf.n_head,
+                seq=seq
+            )
     # TODO(emma) clean up the code and just put llama or gpt2 in the yaml
-    elif "gpt2" in conf.family:
-        model = FromLanguageTransformerModel(conf.n_dims, family="gpt2", checkpoint=conf.family, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
     # elif "llama2" in conf.family:
     #     model = FromLanguageTransformerModel(conf.n_dims, family="llama2", checkpoint=conf.family, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
 
@@ -174,6 +176,7 @@ class FromLanguageTransformerModel(nn.Module):
         # elif family == "Llama-2":
         #     self._backbone = LlamaForCausalLM.from_pretrained(checkpoint)
 
+        print(self._backbone.config, "model config")
         if freeze_ln:
             # freeze all the parameters of the GPT2 backbone 
             for name, param in self._backbone.named_parameters():

@@ -11,7 +11,7 @@ training:
             interval: 2000
 
 model:
-    family: meta-llama/Llama-2-7b
+    name: meta-llama/Llama-2-7b
     mlp: false
     freeze_ln: true
 

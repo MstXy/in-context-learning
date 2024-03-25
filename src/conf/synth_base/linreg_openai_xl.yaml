@@ -1,5 +1,5 @@
 inherit: 
-    - ../base.yaml
+    - base.yaml
 
 training:
     task: linear_regression
@@ -10,13 +10,10 @@ training:
             inc: 2
             interval: 2000
 
-model:
-    name: openai-community/gpt2
-    mlp: true
-    freeze_ln: false
-    n_embd: 768
-
 out_dir: ../models/linear_regression
 
+model:
+    name: openai-community/gpt2
+
 wandb:
-    name: "linear_regression_from_language_openai_mlp"
+    name: "linear_regression_standard"

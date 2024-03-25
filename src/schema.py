@@ -15,8 +15,9 @@ from funcy import merge
 
 model_schema = {
     # TODO(emma): add allowed values for family once code is cleaner
-    # "family": merge(tstring, allowed(["gpt2", "lstm"])),
-    "family": merge(tstring),
+    "family": merge(tstring, allowed(["gpt2", "lstm"])),
+    "name": merge(tstring, required),
+    # "family": merge(tstring),
     "freeze_ln": merge(tboolean, default(True)),
     "mlp": merge(tboolean, default(False)),
     "n_positions": merge(tinteger, required),  # maximum context length
@@ -24,6 +25,7 @@ model_schema = {
     "n_embd": merge(tinteger, required),
     "n_layer": merge(tinteger, required),
     "n_head": merge(tinteger, required),
+    "from_scratch": merge(tboolean, required),
 }
 
 curriculum_base_schema = {
