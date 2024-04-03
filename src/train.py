@@ -171,8 +171,8 @@ def main(args):
 
     train(model, args, device)
 
-    if not args.test_run:
-        _ = get_run_metrics(args.out_dir)  # precompute metrics for eval
+    # if not args.test_run:
+    #     _ = get_run_metrics(args.out_dir)  # precompute metrics for eval
 
 
 if __name__ == "__main__":

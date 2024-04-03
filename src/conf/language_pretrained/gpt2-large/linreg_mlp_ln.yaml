@@ -1,5 +1,5 @@
 inherit: 
-    - ../base.yaml
+    - ../../base.yaml
 
 training:
     task: linear_regression
@@ -9,17 +9,16 @@ training:
             end: 41
             inc: 2
             interval: 2000
-    resume_id: "d53d8586-d831-4905-8170-492688ba2416"
 
 
 model:
-    name: openai-community/gpt2
+    name: openai-community/gpt2-large
     mlp: true
     freeze_ln: false
-    n_embd: 768
+    n_embd: 1280
     from_scratch: false
 
-out_dir: ../models/linear_regression
+out_dir: ../models/linear_regression/gpt2-med
 
 wandb:
-    name: "linear_regression_from_language_openai_mlp_ln"
+    name: "linear_regression_from_language_gpt2large_mlp_ln"
