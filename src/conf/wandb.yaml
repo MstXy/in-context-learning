@@ -1,5 +1,5 @@
 wandb:
-    project: in-context-training
-    entity: icl182
+    project: icl_text
+    entity: mstxy
     notes:
     log_every_steps: 100

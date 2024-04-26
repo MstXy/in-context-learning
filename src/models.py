@@ -8,6 +8,8 @@ import warnings
 from sklearn import tree
 import xgboost as xgb
 
+import numpy as np
+
 from base_models import NeuralNetwork, ParallelNetworks
 
 
@@ -15,7 +17,7 @@ def build_model(conf, seq):
     if conf.family == "gpt2":
         if "garg" not in conf.name:
             print("Building a model from pre-trained GPT2 language model")
-            model = FromLanguageTransformerModel(conf.n_dims, family=conf.family, checkpoint=conf.name, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, seq=seq)
+            model = FromLanguageTransformerModel(conf.n_dims, family=conf.family, checkpoint=conf.name, n_embd=conf.n_embd, mlp=conf.mlp, freeze_ln=conf.freeze_ln, pca=conf.pca, seq=seq)
         else:
             model = TransformerModel(
                 n_dims=conf.n_dims,
@@ -152,7 +154,7 @@ class TransformerModel(nn.Module):
         return prediction[:, ::2, :][:, inds]  # predict only on xs
 
 class FromLanguageTransformerModel(nn.Module):
-    def __init__(self, n_dims, family="gpt2", checkpoint="openai-community/gpt2", n_embd=128, mlp=False, freeze_ln=False, seq=False):
+    def __init__(self, n_dims, family="gpt2", checkpoint="openai-community/gpt2", n_embd=128, mlp=False, freeze_ln=False, pca=False, seq=False):
         super(FromLanguageTransformerModel, self).__init__()
 
         # there is no need for a GPT2 configuration if you use a pretrained model.
@@ -164,13 +166,17 @@ class FromLanguageTransformerModel(nn.Module):
             self._read_in = nn.Sequential(
                 nn.Linear(n_dims, n_dims*2),
                 nn.ReLU(),
-                nn.Linear(n_dims * 2, n_dims*4),
-                nn.ReLU(),
-                nn.Linear(n_dims * 4, n_embd)
+                # nn.Linear(n_dims * 2, n_dims*4),
+                # nn.ReLU(),
+                nn.Linear(n_dims * 2, n_embd)
             )
         else:
             self._read_in = nn.Linear(n_dims, n_embd)
 
+        self.pca = pca
+        if self.pca:
+            self.pca_projection = nn.Parameter(torch.from_numpy(np.load("/home/williamz/icl_seq/pca.npy")), requires_grad=False)
+            print(self.pca_projection.shape)
         if family == "gpt2":
             self._backbone = GPT2Model.from_pretrained(checkpoint)
         # elif family == "Llama-2":
@@ -226,6 +232,9 @@ class FromLanguageTransformerModel(nn.Module):
         zs = self._combine(xs, ys, self.seq)
         # print(zs)
         embeds = self._read_in(zs)
+        ## do pca
+        if self.pca:
+            embeds = embeds @ self.pca_projection.T
         output = self._backbone(inputs_embeds=embeds).last_hidden_state
         prediction = self._read_out(output)
         return prediction[:, ::2, :][:, inds]  # predict only on xs

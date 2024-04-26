@@ -20,6 +20,7 @@ model_schema = {
     # "family": merge(tstring),
     "freeze_ln": merge(tboolean, default(True)),
     "mlp": merge(tboolean, default(False)),
+    "pca": merge(tboolean, default(False)),
     "n_positions": merge(tinteger, required),  # maximum context length
     "n_dims": merge(tinteger, required),  # latent dimension
     "n_embd": merge(tinteger, required),
