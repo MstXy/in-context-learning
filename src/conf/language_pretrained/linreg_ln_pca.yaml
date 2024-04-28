@@ -9,7 +9,7 @@ training:
             end: 41
             inc: 2
             interval: 2000
-    resume_id: "d53d8586-d831-4905-8170-492688ba2416"
+    # resume_id: "d53d8586-d831-4905-8170-492688ba2416"
 
 
 model:

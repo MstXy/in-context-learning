@@ -166,16 +166,16 @@ class FromLanguageTransformerModel(nn.Module):
             self._read_in = nn.Sequential(
                 nn.Linear(n_dims, n_dims*2),
                 nn.ReLU(),
-                # nn.Linear(n_dims * 2, n_dims*4),
-                # nn.ReLU(),
-                nn.Linear(n_dims * 2, n_embd)
+                nn.Linear(n_dims * 2, n_dims*4),
+                nn.ReLU(),
+                nn.Linear(n_dims * 4, n_embd)
             )
         else:
             self._read_in = nn.Linear(n_dims, n_embd)
 
         self.pca = pca
         if self.pca:
-            self.pca_projection = nn.Parameter(torch.from_numpy(np.load("/home/williamz/icl_seq/pca.npy")), requires_grad=False)
+            self.pca_projection = nn.Parameter(torch.from_numpy(np.load("/home/williamz/in-context-learning/pca.npy")), requires_grad=False)
             print(self.pca_projection.shape)
         if family == "gpt2":
             self._backbone = GPT2Model.from_pretrained(checkpoint)
@@ -464,7 +464,7 @@ class GDModel:
         # prediction made at all indices by default.
         # xs: bsize X npoints X ndim.
         # ys: bsize X npoints.
-        xs, ys = xs.cuda(), ys.cuda()
+        xs, ys = xs.to("cuda:2"), ys.to("cuda:2")
 
         if inds is None:
             inds = range(ys.shape[1])
@@ -480,7 +480,7 @@ class GDModel:
             model = ParallelNetworks(
                 ys.shape[0], self.model_class, **self.model_class_args
             )
-            model.cuda()
+            model.to("cuda:2")
             if i > 0:
                 pred = torch.zeros_like(ys[:, 0])
 
